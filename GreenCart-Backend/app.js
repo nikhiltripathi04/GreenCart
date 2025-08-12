@@ -3,7 +3,7 @@ require('dotenv').config(); // Load environment variables
 const express = require('express');
 const cors = require('cors'); // For Cross-Origin Resource Sharing
 const connectDB = require('./config/db'); // Your MongoDB connection function
-const path = require('path'); // Although not used directly in this snippet, it's kept as per original
+const path = require('path'); // Kept as per original, though not directly used in this snippet
 
 // --- Route Imports ---
 // Authentication Routes
@@ -13,7 +13,7 @@ const driverRoutes = require('./routes/driverRoutes');
 const routeRoutes = require('./routes/routeRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 // Simulation Routes
-const simulationRoutes = require('./routes/simulatonRoutes');
+const simulationRoutes = require('./routes/simulationRoutes'); // CORRECTED TYPO HERE
 const { errorHandler } = require('./middleware/errorMiddleware'); // Import error handler
 
 
@@ -36,11 +36,11 @@ app.get('/', (req, res) => {
     res.send('GreenCart Logistics API is running...');
 });
 
-// --- Error Handling Middleware (MUST be last middleware) ---
-app.use(errorHandler);
+// --- Error Handling Middleware (MUST be last middleware before app.listen) ---
+app.use(errorHandler); // Use your centralized error handler
 
 // Define the port to listen on
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5000; // Render injects its own PORT env variable
 
 // Connect to MongoDB and then start the server
 connectDB()
@@ -49,7 +49,8 @@ connectDB()
 
         // Start the server only after successful database connection
         app.listen(PORT, () => {
-            console.log(`Server is running on port http://localhost:${PORT}`);
+            // Log the actual port being used, which will be Render's assigned port in deployment
+            console.log(`Server is running on port ${PORT}`);
         });
     })
     .catch((err) => {
@@ -57,9 +58,5 @@ connectDB()
         process.exit(1); // Exit process with failure
     });
 
-// Global error handling middleware - placed after all other routes and middleware
-// This catches any errors passed to `next(err)`
-app.use((err, req, res, next) => {
-    console.error(err.stack); // Log the stack trace for debugging
-    res.status(500).json({ message: 'Server Error' }); // Send a generic error response
-});
+// REMOVED: The redundant global error handling middleware was here.
+// Your `errorHandler` from `middleware/errorMiddleware.js` is now sufficient.
