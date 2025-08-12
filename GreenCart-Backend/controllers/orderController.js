@@ -37,11 +37,12 @@ const getOrderById = async (req, res) => {
 // @route   POST /api/orders
 // @access  Private (Managers only)
 const addOrder = async (req, res) => {
-  const { orderId, valueRs, routeId, deliveryTimestamp } = req.body;
+  // CHANGED: Destructure actualDeliveryDurationMinutes instead of deliveryTimestamp
+  const { orderId, valueRs, routeId, actualDeliveryDurationMinutes } = req.body;
 
-  // Basic validation
-  if (!orderId || valueRs === undefined || !routeId) {
-    return res.status(400).json({ message: 'Please provide orderId, valueRs, and routeId.' });
+  // Basic validation - ensure actualDeliveryDurationMinutes is present
+  if (!orderId || valueRs === undefined || !routeId || actualDeliveryDurationMinutes === undefined) {
+    return res.status(400).json({ message: 'Please provide orderId, valueRs, routeId, and actualDeliveryDurationMinutes.' });
   }
 
   try {
@@ -61,7 +62,7 @@ const addOrder = async (req, res) => {
       orderId,
       valueRs,
       assignedRoute: assignedRouteDoc._id, // Store the MongoDB _id of the route
-      deliveryTimestamp: deliveryTimestamp ? new Date(deliveryTimestamp) : undefined,
+      actualDeliveryDurationMinutes: Number(actualDeliveryDurationMinutes), // Ensure it's a number
     });
     const createdOrder = await newOrder.save();
 
@@ -71,6 +72,10 @@ const addOrder = async (req, res) => {
     res.status(201).json(createdOrder);
   } catch (error) {
     console.error(error);
+    // Provide more specific error message for validation failures
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ message: error.message });
+    }
     res.status(500).json({ message: 'Server error adding order' });
   }
 };
@@ -79,7 +84,8 @@ const addOrder = async (req, res) => {
 // @route   PUT /api/orders/:id
 // @access  Private (Managers only)
 const updateOrder = async (req, res) => {
-  const { orderId, valueRs, routeId, deliveryTimestamp } = req.body;
+  // CHANGED: Destructure actualDeliveryDurationMinutes instead of deliveryTimestamp
+  const { orderId, valueRs, routeId, actualDeliveryDurationMinutes } = req.body;
 
   try {
     const order = await Order.findById(req.params.id);
@@ -104,8 +110,9 @@ const updateOrder = async (req, res) => {
         order.assignedRoute = assignedRouteDoc._id;
       }
 
-      if (deliveryTimestamp) {
-        order.deliveryTimestamp = new Date(deliveryTimestamp);
+      // CHANGED: Update actualDeliveryDurationMinutes
+      if (actualDeliveryDurationMinutes !== undefined) {
+        order.actualDeliveryDurationMinutes = Number(actualDeliveryDurationMinutes);
       }
 
       const updatedOrder = await order.save();
@@ -118,6 +125,10 @@ const updateOrder = async (req, res) => {
     }
   } catch (error) {
     console.error(error);
+    // Provide more specific error message for validation failures
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ message: error.message });
+    }
     res.status(500).json({ message: 'Server error updating order' });
   }
 };
