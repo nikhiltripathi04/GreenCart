@@ -1,0 +1,13 @@
+# Root .gitignore
+greencart-backend/node_modules/
+greencart-backend/.env
+greencart-frontend/node_modules/
+greencart-frontend/.env
+
+# General ignores
+.DS_Store
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.idea/
+.vscode/
