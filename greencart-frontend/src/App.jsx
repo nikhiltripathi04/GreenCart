@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react';
 // Import your page components
 import DashboardPage from './pages/dashboard/DashboardPage';
 import LoginPage from './pages/auth/LoginPage';
+import RegisterPage from './pages/auth/RegisterPage'; // NEW IMPORT
 import DriverListPage from './pages/drivers/DriverListPage';
 import RouteListPage from './pages/routes/RouteListPage';
 import OrderListPage from './pages/orders/OrderListPage';
 import SimulationPage from './pages/simulation/SimulationPage';
-import { logout } from './services/authService'; // Import logout service
+import { logout } from './services/authService';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('login');
@@ -26,16 +27,21 @@ function App() {
   };
 
   const handleLogout = () => {
-    logout(); // Call the logout service
+    logout();
     setIsAuthenticated(false);
     setCurrentPage('login');
   };
 
   const renderPage = () => {
     if (!isAuthenticated) {
-      return <LoginPage onLoginSuccess={handleLoginSuccess} />;
+      // If not authenticated, show Login or Register page
+      if (currentPage === 'register') {
+        return <RegisterPage onRegisterSuccess={handleLoginSuccess} onGoToLogin={() => setCurrentPage('login')} />;
+      }
+      return <LoginPage onLoginSuccess={handleLoginSuccess} onGoToRegister={() => setCurrentPage('register')} />; // Pass onGoToRegister to LoginPage
     }
 
+    // If authenticated, render the selected page
     switch (currentPage) {
       case 'dashboard':
         return <DashboardPage />;
